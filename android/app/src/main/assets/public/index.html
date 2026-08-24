@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="robots" content="noindex, nofollow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulsar - Authentication & Profile Setup</title>
+    <style>
+        /* Remove mobile click/tap highlights globally */
+        * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none; /* Disables the iOS/Android long-press popup menu */
+    -webkit-user-select: none;   /* Disables text selection highlighting */
+    user-select: none;
+    box-sizing: border-box;
+}
+
+/* If you want users to still be able to type/select text inside input boxes and chat message inputs */
+input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            min-height: 100dvh;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1080 1920' width='1080' height='1920'%3E%3Crect width='100%25' height='100%25' fill='%23ffffff'/%3E%3Ccircle cx='150' cy='250' r='24' fill='%234f46e5' fill-opacity='0.08'/%3E%3Ccircle cx='900' cy='180' r='40' fill='%2338bdf8' fill-opacity='0.06'/%3E%3Ccircle cx='820' cy='500' r='16' fill='%234f46e5' fill-opacity='0.08'/%3E%3Ccircle cx='200' cy='650' r='30' fill='%2338bdf8' fill-opacity='0.06'/%3E%3Ccircle cx='950' cy='950' r='50' fill='%234f46e5' fill-opacity='0.08'/%3E%3Ccircle cx='120' cy='1100' r='20' fill='%2338bdf8' fill-opacity='0.06'/%3E%3Ccircle cx='880' cy='1400' r='35' fill='%234f46e5' fill-opacity='0.08'/%3E%3Ccircle cx='250' cy='1650' r='45' fill='%2338bdf8' fill-opacity='0.06'/%3E%3Ccircle cx='750' cy='1800' r='20' fill='%234f46e5' fill-opacity='0.08'/%3E%3Ccircle cx='300' cy='350' r='10' fill='%2338bdf8' fill-opacity='0.06'/%3E%3Ccircle cx='700' cy='300' r='12' fill='%234f46e5' fill-opacity='0.08'/%3E%3Ccircle cx='450' cy='800' r='15' fill='%2338bdf8' fill-opacity='0.06'/%3E%3Ccircle cx='650' cy='1150' r='18' fill='%234f46e5' fill-opacity='0.08'/%3E%3Ccircle cx='350' cy='1350' r='14' fill='%2338bdf8' fill-opacity='0.06'/%3E%3C/svg%3E") no-repeat center center fixed;
+            background-size: cover;
+            color: #1e293b; 
+            margin: 0; 
+            padding: 16px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 16px;
+            position: relative;
+        }
+        
+        .logo-badge {
+            width: 70px;
+            height: 70px;
+            background: #ffffff;
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            align-self: center;
+            margin-bottom: 2px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        .logo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        h2 { text-align: center; margin-bottom: 2px; margin-top: 0; font-size: 20px; color: #0f172a; }
+        p { text-align: center; margin-top: 0; color: #64748b; font-size: 12px; }
+        
+        .auth-view {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .auth-view.active {
+            display: flex;
+            animation: slideFromBottomEdge 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideFromBottomEdge {
+            0% { transform: translateY(100vh); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        input, select {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 11px;
+            border-radius: 8px;
+            color: #0f172a;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+        input:focus, select:focus { border-color: #4f46e5; background: #ffffff; }
+        input::placeholder { color: #94a3b8; }
+        
+        button { 
+            background: #4f46e5; 
+            color: white; 
+            border: none; 
+            padding: 11px; 
+            font-size: 14px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            font-weight: 500;
+        }
+        button:hover { background: #4338ca; }
+        button:disabled { background: #94a3b8; cursor: not-allowed; }
+        
+        .divider { text-align: center; color: #94a3b8; font-size: 12px; margin: 2px 0; }
+        
+        .google-btn { background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; font-weight: 600; }
+        .google-btn:hover { background: #f1f5f9; }
+        
+        .switch-text {
+            text-align: center;
+            color: #2563eb;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 2px;
+            text-decoration: underline;
+        }
+        .switch-text:hover { color: #1d4ed8; }
+
+        svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+        /* Circle Profile Image Uploader Styles */
+        .profile-uploader-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .circle-uploader {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .circle-uploader:hover { border-color: #4f46e5; }
+        .circle-uploader img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+        .uploader-placeholder {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            padding: 4px;
+        }
+
+        /* Birthday Selectors Grid */
+        .dob-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1.5fr 1.2fr;
+            gap: 6px;
+        }
+
+        /* 7 Rules Box & Checkbox Styles */
+        .rules-container {
+            max-height: 110px;
+            overflow-y: auto;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.35;
+            text-align: left;
+        }
+        .rules-container ol {
+            margin: 0;
+            padding-left: 16px;
+        }
+        .rules-container li {
+            margin-bottom: 5px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #334155;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-label input {
+            width: 15px;
+            height: 15px;
+            accent-color: #4f46e5;
+            cursor: pointer;
+        }
+
+        #offlineBanner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ff4d4d;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            z-index: 9999;
+        }
+
+        /* Book Opening Animation Modal Styles */
+        .book-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(3px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 10000; perspective: 1200px; padding: 16px;
+        }
+        .book-modal-overlay.active { display: flex; }
+        .book-modal-content {
+            background: #ffffff; color: #1e293b; width: 100%; max-width: 290px;
+            border-radius: 14px; overflow: hidden; padding: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            transform-origin: left center;
+            transform: rotateY(-90deg) scale(0.85);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            text-align: center;
+        }
+        .book-modal-overlay.active .book-modal-content {
+            transform: rotateY(0deg) scale(1);
+            opacity: 1;
+        }
+        .book-modal-overlay.closing .book-modal-content {
+            transform: rotateY(90deg) scale(0.85);
+            opacity: 0;
+        }
+        .book-modal-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: #e53935; }
+        .book-modal-text { font-size: 13px; color: #64748b; margin-bottom: 14px; line-height: 1.4; }
+
+        /* Standard Modal Overlay */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(3px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000; padding: 16px;
+        }
+        .modal-card {
+            background: #ffffff; border: 1px solid #e2e8f0; padding: 20px;
+            border-radius: 14px; width: 100%; max-width: 280px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .modal-card h3 { margin-top: 0; margin-bottom: 8px; color: #0f172a; font-size: 17px; }
+        .modal-card p { color: #64748b; font-size: 13px; margin-bottom: 16px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- App Logo Badge -->
+        <div class="logo-badge">
+            <img src="images_logo/applogo.png" alt="Pulsar Logo" class="logo">
+        </div>
+        
+        <!-- ================= LOGIN VIEW ================= -->
+        <div id="loginView" class="auth-view active">
+            <h2>Welcome to Pulsar</h2>
+            <p>Sign in to continue</p>
+            
+            <input type="email" id="loginEmail" placeholder="Email address" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" required>
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
+            
+            <button id="emailLoginBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                Sign in with Email
+            </button>
+
+            <div class="switch-text" id="goToRegister">Don't have an account? Register</div>
+
+            <div class="divider">or</div>
+
+            <button id="googleBtn" class="google-btn">
+                <svg viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.32 7.22 24 12 24z"/>
+                  <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.12 0 9.8 0 12s.43 3.88 1.18 5.4l4.09-3.16z"/>
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+
+        <!-- ================= REGISTRATION VIEW ================= -->
+        <div id="registerView" class="auth-view">
+            <h2>Create Account</h2>
+            <p>Register a new Pulsar account</p>
+            
+            <input type="email" id="regEmail" placeholder="Email address" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" required>
+            <input type="password" id="regPassword" placeholder="Password (Letters & Digits, min 6)" autocomplete="new-password" minlength="6" required>
+            <input type="password" id="regConfirmPassword" placeholder="Confirm Password" autocomplete="new-password" minlength="6" required>
+            
+            <button id="emailSignUpBtn" style="background: #059669;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.765Z" />
+                </svg>
+                Register Account
+            </button>
+
+            <div class="switch-text" id="goToLogin">Already have an account? Sign in</div>
+        </div>
+
+        <div id="offlineBanner" style="display: none;">
+          No Internet connection
+        </div>
+
+        <!-- ================= PROFILE CREATION / ONBOARDING VIEW ================= -->
+        <div id="profileCreationView" class="auth-view">
+            <h2>Complete Profile</h2>
+            <p>Setup your profile to join Pulsar</p>
+
+            <!-- Circle Upload Media Container -->
+            <div class="profile-uploader-wrapper">
+                <div class="circle-uploader" id="circleUploaderBtn">
+                    <div class="uploader-placeholder" id="uploaderPlaceholder">Upload Photo</div>
+                    <img id="profilePreviewImg" src="" alt="Profile Preview">
+                </div>
+                <input type="file" id="profileImageFile" accept="image/*" style="display: none;">
+            </div>
+
+            <!-- Birthday Selectors (Day, Month, Year Dropdowns) -->
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+                <label style="font-size: 11px; font-weight: 600; color: #475569;">Birthday (Age Verification - Must be 18+)</label>
+                <div class="dob-grid">
+                    <select id="birthMonth" required>
+                        <option value="" disabled selected>Month</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <select id="birthDay" required>
+                        <option value="" disabled selected>Day</option>
+                    </select>
+                    <select id="birthYear" required>
+                        <option value="" disabled selected>Year</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 7 Rules Agreement Policy Box -->
+            <div class="rules-container" id="rulesScrollContainer">
+                <ol>
+                    <li><strong>Compliance with Eligibility:</strong> You must be at least 18 years of age to register, access, or use the Pulsar platform services.</li>
+                    <li><strong>Accurate Information:</strong> You agree to provide accurate, truthful, and updated registration details, including your genuine birthdate and profile data.</li>
+                    <li><strong>Respectful Conduct:</strong> Harassment, hate speech, bullying, spamming, or abusive behavior toward any user or group is strictly prohibited.</li>
+                    <li><strong>Content Responsibility:</strong> You are solely responsible for all profile pictures, media attachments, or messages you upload, share, or transmit.</li>
+                    <li><strong>Account Security:</strong> You are responsible for keeping your credentials confidential and secure. Unauthorized usage must be reported immediately.</li>
+                    <li><strong>Prohibited Activities:</strong> Using the platform for illegal acts, malware distribution, or attempting to breach security features will result in permanent bans.</li>
+                    <li><strong>Policy Enforcement & Termination:</strong> Pulsar reserves the right to suspend or terminate accounts instantly if any of these standard terms and safety guidelines are violated.</li>
+                </ol>
+            </div>
+
+            <!-- Interactive Checkbox -->
+            <label class="checkbox-label">
+                <input type="checkbox" id="agreeRulesCheckbox" disabled>
+                <span>I have read and agree to all 7 platform policies</span>
+            </label>
+
+            <!-- Continue Button -->
+            <button id="saveProfileBtn" disabled>Continue to Platform</button>
+        </div>
+    </div>
+
+    <!-- Standard Modal Structure -->
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 id="modalTitle">Notice</h3>
+            <p id="modalMessage">Message goes here...</p>
+            <button id="modalCloseBtn" style="background: #4f46e5; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold;">OK</button>
+        </div>
+    </div>
+
+    <!-- Book Opening Animation Alert Modal (Under 18 Restriction) -->
+    <div id="restrictionBookModal" class="book-modal-overlay">
+        <div class="book-modal-content">
+            <div class="book-modal-title">Access Denied</div>
+            <div class="book-modal-text">You are not access to this Platform...</div>
+        </div>
+    </div>
+
+    <!-- Eruda Console Script -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
+    <script type="module">
+        import { supabase } from './supabase.js';
+
+        const loginView = document.getElementById('loginView');
+        const registerView = document.getElementById('registerView');
+        const profileCreationView = document.getElementById('profileCreationView');
+
+        let selectedAvatarFile = null;
+        let hasScrolledToBottom = false;
+
+        // Populate Day & Year Dropdowns dynamically
+        const birthDaySelect = document.getElementById('birthDay');
+        const birthYearSelect = document.getElementById('birthYear');
+
+        for (let d = 1; d <= 31; d++) {
+            const opt = document.createElement('option');
+            opt.value = String(d).padStart(2, '0');
+            opt.textContent = d;
+            birthDaySelect.appendChild(opt);
+        }
+
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear; y >= currentYear - 100; y--) {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            birthYearSelect.appendChild(opt);
+        }
+
+        // Check authentication and profile completeness on start
+        async function checkInitialSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const user = session.user;
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile && profile.avatar_url && profile.birthdate) {
+                    window.location.href = 'chat_system.html';
+                } else {
+                    switchView(profileCreationView);
+                }
+            }
+        }
+        checkInitialSession();
+
+        function switchView(targetView) {
+            [loginView, registerView, profileCreationView].forEach(v => v.classList.remove('active'));
+            void targetView.offsetWidth;
+            targetView.classList.add('active');
+        }
+
+        document.getElementById('goToRegister').addEventListener('click', () => switchView(registerView));
+        document.getElementById('goToLogin').addEventListener('click', () => switchView(loginView));
+
+        // Standard Modal Controller
+        function showModal(title, message) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('customModal').style.display = 'flex';
+        }
+
+        document.getElementById('modalCloseBtn').addEventListener('click', () => {
+            document.getElementById('customModal').style.display = 'none';
+        });
+
+        // Circle Uploader Event Handlers
+        const circleUploaderBtn = document.getElementById('circleUploaderBtn');
+        const profileImageFile = document.getElementById('profileImageFile');
+        const profilePreviewImg = document.getElementById('profilePreviewImg');
+        const uploaderPlaceholder = document.getElementById('uploaderPlaceholder');
+
+        circleUploaderBtn.addEventListener('click', () => profileImageFile.click());
+
+        profileImageFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedAvatarFile = file;
+                const objectUrl = URL.createObjectURL(file);
+                profilePreviewImg.src = objectUrl;
+                profilePreviewImg.style.display = 'block';
+                uploaderPlaceholder.style.display = 'none';
+                validateProfileForm();
+            }
+        });
+
+        function updateOnlineStatus() {
+            const offlineBanner = document.getElementById('offlineBanner');
+            if (!offlineBanner) return;
+            
+            if (navigator.onLine) {
+                offlineBanner.style.display = 'none';
+            } else {
+                offlineBanner.style.display = 'block';
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        document.addEventListener('DOMContentLoaded', updateOnlineStatus);
+
+        // 7 Rules Scroll Tracking & Automatic Checkbox
+        const rulesScrollContainer = document.getElementById('rulesScrollContainer');
+        const agreeRulesCheckbox = document.getElementById('agreeRulesCheckbox');
+
+        rulesScrollContainer.addEventListener('scroll', () => {
+            const isAtBottom = rulesScrollContainer.scrollHeight - rulesScrollContainer.scrollTop <= rulesScrollContainer.clientHeight + 15;
+            if (isAtBottom && !hasScrolledToBottom) {
+                hasScrolledToBottom = true;
+                agreeRulesCheckbox.disabled = false;
+                agreeRulesCheckbox.checked = true;
+                validateProfileForm();
+            }
+        });
+
+        agreeRulesCheckbox.addEventListener('change', () => {
+            if (!hasScrolledToBottom) {
+                agreeRulesCheckbox.checked = false;
+            }
+            validateProfileForm();
+        });
+
+        document.getElementById('birthMonth').addEventListener('change', validateProfileForm);
+        document.getElementById('birthDay').addEventListener('change', validateProfileForm);
+        document.getElementById('birthYear').addEventListener('change', validateProfileForm);
+
+        function validateProfileForm() {
+            const mVal = document.getElementById('birthMonth').value;
+            const dVal = document.getElementById('birthDay').value;
+            const yVal = document.getElementById('birthYear').value;
+            const isImageSelected = selectedAvatarFile !== null;
+            const isAgreed = agreeRulesCheckbox.checked;
+
+            const saveProfileBtn = document.getElementById('saveProfileBtn');
+            if (isImageSelected && mVal && dVal && yVal && isAgreed) {
+                saveProfileBtn.disabled = false;
+            } else {
+                saveProfileBtn.disabled = true;
+            }
+        }
+
+        // Book Opening Restriction Modal Trigger & Auto Deletion
+        async function handleUnderageRestriction(userId) {
+            const bookModal = document.getElementById('restrictionBookModal');
+            bookModal.classList.remove('closing');
+            bookModal.classList.add('active');
+
+            try {
+                await supabase.from('profiles').delete().eq('id', userId);
+                await supabase.auth.signOut();
+            } catch (err) {
+                console.error("Cleanup error:", err);
+            }
+
+            setTimeout(() => {
+                bookModal.classList.add('closing');
+                setTimeout(() => {
+                    bookModal.classList.remove('active', 'closing');
+                    window.location.reload();
+                }, 400);
+            }, 2000);
+        }
+
+        // Save Profile Data and Age Check -> DIRECTLY to chat_system.html on finish
+        document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+            const mVal = document.getElementById('birthMonth').value;
+            const dVal = document.getElementById('birthDay').value;
+            const yVal = document.getElementById('birthYear').value;
+            if (!mVal || !dVal || !yVal || !selectedAvatarFile) return;
+
+            const birthdateVal = `${yVal}-${mVal}-${dVal}`;
+
+            const birthDateObj = new Date(birthdateVal);
+            const today = new Date();
+            let age = today.getFullYear() - birthDateObj.getFullYear();
+            const m = today.getMonth() - birthDateObj.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDateObj.getDate())) {
+                age--;
+            }
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.reload();
+                return;
+            }
+            const user = session.user;
+
+            if (age < 18) {
+                await handleUnderageRestriction(user.id);
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveProfileBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Setting up profile...';
+
+            try {
+                const fileExt = selectedAvatarFile.name.split('.').pop();
+                const filePath = `${user.id}/avatar_${Date.now()}.${fileExt}`;
+                
+                const { error: uploadError } = await supabase.storage.from('chat-media').upload(filePath, selectedAvatarFile);
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabase.storage.from('chat-media').getPublicUrl(filePath);
+                const avatarUrl = publicUrlData?.publicUrl || '';
+
+                const email = user.email || '';
+                const username = email.split('@')[0];
+
+                const { error: profileError } = await supabase.from('profiles').upsert({
+                    id: user.id,
+                    username: username,
+                    full_name: username,
+                    avatar_url: avatarUrl,
+                    birthdate: birthdateVal
+                });
+
+                if (profileError) throw profileError;
+
+                // DIRECT redirect to chat_system.html smoothly
+                window.location.href = 'chat_system.html';
+
+            } catch (err) {
+                showModal('Setup Error', err.message);
+                saveBtn.disabled = false;
+                saveBtn.innerText = 'Continue to Platform';
+            }
+        });
+
+        // Google Sign In
+        document.getElementById('googleBtn').addEventListener('click', async () => {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/chat_system.html'
+                }
+            });
+            if (error) showModal('Authentication Error', error.message);
+        });
+
+        // Email Sign In
+        document.getElementById('emailLoginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showModal('Missing Fields', 'Please enter both your email and password.');
+                return;
+            }
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                if (error.message.includes('Invalid login credentials')) {
+                    showModal('Sign In Failed', 'Invalid login credentials. If you do not have an account yet, please click "Register" below.');
+                } else if (error.message.includes('Email not confirmed')) {
+                    showModal('Email Not Confirmed', 'Please check your Gmail account and confirm your email address before signing in.');
+                } else {
+                    showModal('Sign In Failed', error.message);
+                }
+            } else if (data?.session) {
+                // Check if profile exists; if not go to profile creation, otherwise go straight to chat system
+                const user = data.session.user;
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile && profile.avatar_url && profile.birthdate) {
+                    window.location.href = 'chat_system.html';
+                } else {
+                    switchView(profileCreationView);
+                }
+            }
+        });
+
+        // Email Registration (Sign Up) -> FIXED to require Gmail confirmation first
+        document.getElementById('emailSignUpBtn').addEventListener('click', async () => {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+            if (!email || !password || !confirmPassword) {
+                showModal('Missing Fields', 'Please fill in all fields including the confirmation password.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showModal('Password Mismatch', 'Both password boxes must match exactly.');
+                return;
+            }
+
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+            if (!passwordRegex.test(password)) {
+                showModal('Weak Password', 'Password must be at least 6 characters long and include both letters and digits.');
+                return;
+            }
+
+            const { data, error } = await supabase.auth.signUp({ 
+                email, 
+                password,
+                options: {
+                    emailRedirectTo: window.location.origin + '/chat_system.html'
+                }
+            });
+            
+            if (error) {
+                showModal('Registration Error', error.message);
+            } else if (data?.user && data.user.identities && data.user.identities.length === 0) {
+                showModal('Already Registered', 'An account with this email already exists. Please sign in instead.');
+            } else {
+                // Prompt user to check Gmail instead of jumping blindly into profile setup without an active token session
+                showModal('Check Your Gmail', 'Registration successful! A confirmation link has been sent to your Gmail. Please click it to verify your account.');
+                switchView(loginView);
+            }
+        });
+    </script>
+</body>
+</html>
