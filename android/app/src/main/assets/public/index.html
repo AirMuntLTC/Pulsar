@@ -6,21 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pulsar - Authentication & Profile Setup</title>
     <style>
+        /* Global Error Banner Styles */
+        #globalErrorBanner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #dc2626;
+            color: white;
+            padding: 14px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 99999;
+            word-break: break-all;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            text-align: left;
+        }
+
         /* Remove mobile click/tap highlights globally */
         * {
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none; /* Disables the iOS/Android long-press popup menu */
-    -webkit-user-select: none;   /* Disables text selection highlighting */
-    user-select: none;
-    box-sizing: border-box;
-}
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            box-sizing: border-box;
+        }
 
-/* If you want users to still be able to type/select text inside input boxes and chat message inputs */
-input, textarea, [contenteditable="true"] {
-    -webkit-user-select: text;
-    user-select: text;
-}
-
+        input, textarea, [contenteditable="true"] {
+            -webkit-user-select: text;
+            user-select: text;
+        }
 
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
@@ -136,7 +152,6 @@ input, textarea, [contenteditable="true"] {
 
         svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-        /* Circle Profile Image Uploader Styles */
         .profile-uploader-wrapper {
             display: flex;
             flex-direction: column;
@@ -174,14 +189,12 @@ input, textarea, [contenteditable="true"] {
             padding: 4px;
         }
 
-        /* Birthday Selectors Grid */
         .dob-grid {
             display: grid;
             grid-template-columns: 1.1fr 1.5fr 1.2fr;
             gap: 6px;
         }
 
-        /* 7 Rules Box & Checkbox Styles */
         .rules-container {
             max-height: 110px;
             overflow-y: auto;
@@ -230,7 +243,6 @@ input, textarea, [contenteditable="true"] {
             z-index: 9999;
         }
 
-        /* Book Opening Animation Modal Styles */
         .book-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(3px);
@@ -258,7 +270,6 @@ input, textarea, [contenteditable="true"] {
         .book-modal-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: #e53935; }
         .book-modal-text { font-size: 13px; color: #64748b; margin-bottom: 14px; line-height: 1.4; }
 
-        /* Standard Modal Overlay */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(3px);
@@ -273,16 +284,40 @@ input, textarea, [contenteditable="true"] {
         .modal-card h3 { margin-top: 0; margin-bottom: 8px; color: #0f172a; font-size: 17px; }
         .modal-card p { color: #64748b; font-size: 13px; margin-bottom: 16px; line-height: 1.4; }
     </style>
+
+    <!-- Global Error Catcher Script -->
+    <script>
+        function showGlobalError(errorMsg) {
+            const banner = document.getElementById('globalErrorBanner');
+            if (banner) {
+                banner.style.display = 'block';
+                banner.innerText = "🚨 APP ERROR: " + errorMsg;
+            }
+            console.error("APP ERROR:", errorMsg);
+        }
+
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            showGlobalError(`${msg} at line ${lineNo}`);
+            return false;
+        };
+
+        window.addEventListener('unhandledrejection', function(event) {
+            const reason = event.reason ? (event.reason.message || event.reason) : 'Unknown Promise Rejection';
+            showGlobalError(reason);
+        });
+      
+    </script>
 </head>
 <body>
 
+    <!-- Red Error Banner Element -->
+    <div id="globalErrorBanner"></div>
+
     <div class="container">
-        <!-- App Logo Badge -->
         <div class="logo-badge">
             <img src="images_logo/applogo.png" alt="Pulsar Logo" class="logo">
         </div>
         
-        <!-- ================= LOGIN VIEW ================= -->
         <div id="loginView" class="auth-view active">
             <h2>Welcome to Pulsar</h2>
             <p>Sign in to continue</p>
@@ -312,7 +347,6 @@ input, textarea, [contenteditable="true"] {
             </button>
         </div>
 
-        <!-- ================= REGISTRATION VIEW ================= -->
         <div id="registerView" class="auth-view">
             <h2>Create Account</h2>
             <p>Register a new Pulsar account</p>
@@ -335,12 +369,10 @@ input, textarea, [contenteditable="true"] {
           No Internet connection
         </div>
 
-        <!-- ================= PROFILE CREATION / ONBOARDING VIEW ================= -->
         <div id="profileCreationView" class="auth-view">
             <h2>Complete Profile</h2>
             <p>Setup your profile to join Pulsar</p>
 
-            <!-- Circle Upload Media Container -->
             <div class="profile-uploader-wrapper">
                 <div class="circle-uploader" id="circleUploaderBtn">
                     <div class="uploader-placeholder" id="uploaderPlaceholder">Upload Photo</div>
@@ -349,7 +381,6 @@ input, textarea, [contenteditable="true"] {
                 <input type="file" id="profileImageFile" accept="image/*" style="display: none;">
             </div>
 
-            <!-- Birthday Selectors (Day, Month, Year Dropdowns) -->
             <div style="display: flex; flex-direction: column; gap: 3px;">
                 <label style="font-size: 11px; font-weight: 600; color: #475569;">Birthday (Age Verification - Must be 18+)</label>
                 <div class="dob-grid">
@@ -377,7 +408,6 @@ input, textarea, [contenteditable="true"] {
                 </div>
             </div>
 
-            <!-- 7 Rules Agreement Policy Box -->
             <div class="rules-container" id="rulesScrollContainer">
                 <ol>
                     <li><strong>Compliance with Eligibility:</strong> You must be at least 18 years of age to register, access, or use the Pulsar platform services.</li>
@@ -390,18 +420,15 @@ input, textarea, [contenteditable="true"] {
                 </ol>
             </div>
 
-            <!-- Interactive Checkbox -->
             <label class="checkbox-label">
                 <input type="checkbox" id="agreeRulesCheckbox" disabled>
                 <span>I have read and agree to all 7 platform policies</span>
             </label>
 
-            <!-- Continue Button -->
             <button id="saveProfileBtn" disabled>Continue to Platform</button>
         </div>
     </div>
 
-    <!-- Standard Modal Structure -->
     <div id="customModal" class="modal-overlay">
         <div class="modal-card">
             <h3 id="modalTitle">Notice</h3>
@@ -410,7 +437,6 @@ input, textarea, [contenteditable="true"] {
         </div>
     </div>
 
-    <!-- Book Opening Animation Alert Modal (Under 18 Restriction) -->
     <div id="restrictionBookModal" class="book-modal-overlay">
         <div class="book-modal-content">
             <div class="book-modal-title">Access Denied</div>
@@ -418,12 +444,19 @@ input, textarea, [contenteditable="true"] {
         </div>
     </div>
 
-    <!-- Eruda Console Script -->
+  
+
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 
     <script type="module">
-        import { supabase } from './supabase.js';
+    console.log("🚀 Pulsar Auth Script initialized successfully");
+
+    import { supabase } from './supabase.js';
+    import { Capacitor } from 'https://esm.sh/@capacitor/core'; // <--- Add this line
+    import { Browser } from 'https://esm.sh/@capacitor/browser';
+    import { App } from 'https://esm.sh/@capacitor/app';
+
 
         const loginView = document.getElementById('loginView');
         const registerView = document.getElementById('registerView');
@@ -432,7 +465,6 @@ input, textarea, [contenteditable="true"] {
         let selectedAvatarFile = null;
         let hasScrolledToBottom = false;
 
-        // Populate Day & Year Dropdowns dynamically
         const birthDaySelect = document.getElementById('birthDay');
         const birthYearSelect = document.getElementById('birthYear');
 
@@ -451,22 +483,25 @@ input, textarea, [contenteditable="true"] {
             birthYearSelect.appendChild(opt);
         }
 
-        // Check authentication and profile completeness on start
         async function checkInitialSession() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                const user = session.user;
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    const user = session.user;
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
 
-                if (profile && profile.avatar_url && profile.birthdate) {
-                    window.location.href = 'chat_system.html';
-                } else {
-                    switchView(profileCreationView);
+                    if (profile && profile.avatar_url && profile.birthdate) {
+                        window.location.href = 'chat_system.html';
+                    } else {
+                        switchView(profileCreationView);
+                    }
                 }
+            } catch (err) {
+                console.error("Session check error:", err);
             }
         }
         checkInitialSession();
@@ -480,7 +515,6 @@ input, textarea, [contenteditable="true"] {
         document.getElementById('goToRegister').addEventListener('click', () => switchView(registerView));
         document.getElementById('goToLogin').addEventListener('click', () => switchView(loginView));
 
-        // Standard Modal Controller
         function showModal(title, message) {
             document.getElementById('modalTitle').innerText = title;
             document.getElementById('modalMessage').innerText = message;
@@ -491,7 +525,6 @@ input, textarea, [contenteditable="true"] {
             document.getElementById('customModal').style.display = 'none';
         });
 
-        // Circle Uploader Event Handlers
         const circleUploaderBtn = document.getElementById('circleUploaderBtn');
         const profileImageFile = document.getElementById('profileImageFile');
         const profilePreviewImg = document.getElementById('profilePreviewImg');
@@ -514,7 +547,6 @@ input, textarea, [contenteditable="true"] {
         function updateOnlineStatus() {
             const offlineBanner = document.getElementById('offlineBanner');
             if (!offlineBanner) return;
-            
             if (navigator.onLine) {
                 offlineBanner.style.display = 'none';
             } else {
@@ -526,7 +558,6 @@ input, textarea, [contenteditable="true"] {
         window.addEventListener('offline', updateOnlineStatus);
         document.addEventListener('DOMContentLoaded', updateOnlineStatus);
 
-        // 7 Rules Scroll Tracking & Automatic Checkbox
         const rulesScrollContainer = document.getElementById('rulesScrollContainer');
         const agreeRulesCheckbox = document.getElementById('agreeRulesCheckbox');
 
@@ -566,7 +597,6 @@ input, textarea, [contenteditable="true"] {
             }
         }
 
-        // Book Opening Restriction Modal Trigger & Auto Deletion
         async function handleUnderageRestriction(userId) {
             const bookModal = document.getElementById('restrictionBookModal');
             bookModal.classList.remove('closing');
@@ -588,7 +618,6 @@ input, textarea, [contenteditable="true"] {
             }, 2000);
         }
 
-        // Save Profile Data and Age Check -> DIRECTLY to chat_system.html on finish
         document.getElementById('saveProfileBtn').addEventListener('click', async () => {
             const mVal = document.getElementById('birthMonth').value;
             const dVal = document.getElementById('birthDay').value;
@@ -596,7 +625,6 @@ input, textarea, [contenteditable="true"] {
             if (!mVal || !dVal || !yVal || !selectedAvatarFile) return;
 
             const birthdateVal = `${yVal}-${mVal}-${dVal}`;
-
             const birthDateObj = new Date(birthdateVal);
             const today = new Date();
             let age = today.getFullYear() - birthDateObj.getFullYear();
@@ -644,7 +672,6 @@ input, textarea, [contenteditable="true"] {
 
                 if (profileError) throw profileError;
 
-                // DIRECT redirect to chat_system.html smoothly
                 window.location.href = 'chat_system.html';
 
             } catch (err) {
@@ -654,18 +681,34 @@ input, textarea, [contenteditable="true"] {
             }
         });
 
-        // Google Sign In
         document.getElementById('googleBtn').addEventListener('click', async () => {
-            const { error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin + '/chat_system.html'
+                    redirectTo: window.location.origin + '/chat_system.html',
+                    skipBrowserRedirect: true
                 }
             });
-            if (error) showModal('Authentication Error', error.message);
+
+            if (error) {
+                showModal('Authentication Error', error.message);
+                return;
+            }
+
+            if (data?.url) {
+                await Browser.open({ url: data.url });
+            }
         });
 
-        // Email Sign In
+        App.addListener('appUrlOpen', async ({ url }) => {
+            if (url.includes('chat_system.html') || url.includes('login-callback')) {
+                try {
+                    await Browser.close();
+                } catch (e) {}
+                window.location.href = 'chat_system.html';
+            }
+        });
+
         document.getElementById('emailLoginBtn').addEventListener('click', async () => {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -685,7 +728,6 @@ input, textarea, [contenteditable="true"] {
                     showModal('Sign In Failed', error.message);
                 }
             } else if (data?.session) {
-                // Check if profile exists; if not go to profile creation, otherwise go straight to chat system
                 const user = data.session.user;
                 const { data: profile } = await supabase
                     .from('profiles')
@@ -701,7 +743,6 @@ input, textarea, [contenteditable="true"] {
             }
         });
 
-        // Email Registration (Sign Up) -> FIXED to require Gmail confirmation first
         document.getElementById('emailSignUpBtn').addEventListener('click', async () => {
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
@@ -736,7 +777,6 @@ input, textarea, [contenteditable="true"] {
             } else if (data?.user && data.user.identities && data.user.identities.length === 0) {
                 showModal('Already Registered', 'An account with this email already exists. Please sign in instead.');
             } else {
-                // Prompt user to check Gmail instead of jumping blindly into profile setup without an active token session
                 showModal('Check Your Gmail', 'Registration successful! A confirmation link has been sent to your Gmail. Please click it to verify your account.');
                 switchView(loginView);
             }
